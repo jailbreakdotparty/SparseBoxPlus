@@ -33,6 +33,7 @@ struct ApplyView: View {
     
     @EnvironmentObject var appData: AppData
     @AppStorage("shouldRespring") var shouldRespring: Bool = true
+    @AppStorage("showCustomKeys") var showCustomKeys: Bool = false
     @AppStorage("BookassetdContainerUUID") var bookassetdUUID: String?
     
     let device = Device.current
@@ -145,7 +146,7 @@ struct ApplyView: View {
                 }
                 
                 if ddiMounted || weOnADebugBuild {
-                    Section(header: HeaderLabel(text: "Application Settings", icon: "gear")) {
+                    Section(header: HeaderLabel(text: "Application Settings", icon: "gear"), footer: Text("**WARNING:** Enabling the custom gestalt keys feature is super dangerous, and if not used properly, will brick your device! Please do not use this feature unless you know what you are doing.")) {
                         HStack {
                             TextField("bookassetsd UUID", text: Binding(
                                 get: { bookassetdUUID ?? "" },
@@ -156,16 +157,17 @@ struct ApplyView: View {
                                 bookassetdUUID = nil
                             }) {
                                 Image(systemName: "xmark")
-                                    .frame(width: 18, height: 24)
+                                    .frame(width: 24, height: 24)
                             }
                             .buttonStyle(GlassyButtonStyle(isDisabled: bookassetdUUID == nil, color: .red, useFullWidth: false))
                         }
                         .disabled(bookassetdUUID == nil)
                         Toggle("Respring After Finish Restoring", isOn: $shouldRespring)
+                        Toggle("Enable Custom Gestalt Keys", isOn: $showCustomKeys)
                     }
                 }
                 
-                Section(header: HeaderLabel(text: "Device Pairing", icon: "doc"), footer: Text(ddiMounted ? "If you've already imported a pairing file, and the things above aren't green, then make sure that you actually enabled the StikDebug VPN. Also ensure that your pairing file has not expired." : heartbeatReady ? "The Developer Disk Image is not mounted. Open StikDebug and ensure that it's mounted." : "Select or drag and drop a pairing file to continue. If you do not have one, click [here](https://docs.sidestore.io/docs/getting-started/pairing-file) to learn how to generate one.")) {
+                Section(header: HeaderLabel(text: "Device Pairing", icon: "doc"), footer: Text(ddiMounted ? "If you've already imported a pairing file, and the things above aren't green, then make sure that you actually enabled LocalDevVPN. Also ensure that your pairing file has not expired." : heartbeatReady ? "The Developer Disk Image is not mounted." : "Select or drag and drop a pairing file to continue. If you do not have one, click [here](https://docs.sidestore.io/docs/getting-started/pairing-file) to learn how to generate one.")) {
                     VStack(spacing: 14) {
                         Button(action: {
                             if pairingFile == nil {
@@ -200,11 +202,9 @@ struct ApplyView: View {
                         }
                         if !ddiMounted {
                             Button(action: {
-                                if let url = URL(string: "stikjit://") {
-                                    UIApplication.shared.open(url)
-                                }
+                                LSApplicationWorkspaceDefaultWorkspace().openApplication(withBundleID: "com.jkcoxson.LocalDevVPN")
                             }) {
-                                ButtonLabel(text: "Open StikDebug", icon: "bolt")
+                                ButtonLabel(text: "Open LocalDevVPN", icon: "link")
                             }
                             .buttonStyle(GlassyButtonStyle())
                         }
@@ -253,7 +253,7 @@ struct ApplyView: View {
             }
             .onAppear {
                 if !hasShownWelcome {
-                    print("[*] Welcome to SparseBox+!\n[*] Running on \(device.systemName!) \(device.systemVersion!), \(device.description)\n[!] WARNING: This tool has the potential to break or bootloop your device! It's highly recommended to create a backup before usage.\n[*] wait, this ui seems familiar...")
+                    print("[*] Welcome to SparseBox+!\n[*] Running on \(device.systemName!) \(device.systemVersion!), \(device.description)\n[!] WARNING: This tool has the potential to break or bootloop your device! It's highly recommended to create a backup before usage.")
                     hasShownWelcome = true
                 }
             }

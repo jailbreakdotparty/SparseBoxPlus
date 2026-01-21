@@ -19,6 +19,7 @@ struct GestaltTweaksView: View {
     
     @AppStorage("BookassetdContainerUUID") var bookassetdUUID: String?
     @AppStorage("customGestaltKeys") var customGestaltKeys: [String : String] = [:]
+    @AppStorage("showCustomKeys") var showCustomKeys: Bool = false
     
     var body: some View {
         NavigationStack {
@@ -29,13 +30,16 @@ struct GestaltTweaksView: View {
                             .textFieldStyle(GlassyTextFieldStyle(isDisabled: hasCustomDeviceNameBeenSet))
                         if hasCustomDeviceNameBeenSet {
                             Button(action: {
+                                Haptic.shared.play(.soft)
                                 hasCustomDeviceNameBeenSet = false
                             }) {
                                 Image(systemName: "xmark")
+                                    .frame(width: 24, height: 24)
                             }
                             .buttonStyle(GlassyButtonStyle(color: .red, useFullWidth: false))
                         } else {
                             Button(action: {
+                                Haptic.shared.play(.soft)
                                 setDeviceModelName()
                             }) {
                                 Image(systemName: "checkmark")
@@ -45,7 +49,7 @@ struct GestaltTweaksView: View {
                         }
                     }
                     HStack {
-                        Picker("Subtype", selection: $appData.deviceSubtype) {
+                        Picker(selection: $appData.deviceSubtype) {
                             Text("Default (\(originalSubtype))").tag(originalSubtype)
                             Text("iPhone 14 Pro").tag(2436)
                             Text("iPhone 14 Pro Max").tag(2796)
@@ -60,7 +64,10 @@ struct GestaltTweaksView: View {
                             if UIDevice._hasHomeButton() {
                                 Text("iPhone X Gestures").tag(2436)
                             }
+                        } label: {
+                            ButtonLabel(text: "Subtype", icon: "iphone")
                         }
+                        .frame(height: 22)
                         .modifier(GlassyListRowBackground())
                     }
                 }
@@ -92,7 +99,7 @@ struct GestaltTweaksView: View {
                     ListToggleItem(text: "Disable Region Restrictions", icon: "globe", isOn: bindingForRegionRestriction())
                     ListToggleItem(text: "Enable Apple Intelligence", icon: "apple.intelligence", minSupportedVersion: 18.1, isOn: bindingForAppleIntelligence())
                     HStack(spacing: 10) {
-                        Picker("Model Spoofing", selection:$appData.productType) {
+                        Picker("Spoofing", selection:$appData.productType) {
                             Text("Default").tag(machineName())
                             if UIDevice.current.userInterfaceIdiom == .pad {
                                 if doubleSystemVersion() >= 17.4 {
@@ -118,6 +125,7 @@ struct GestaltTweaksView: View {
                                 }
                             }
                         }
+                        .frame(height: 22)
                         .modifier(GlassyListRowBackground())
                         Button(action: {
                             Alertinator.shared.alert(title: "Device Spoofing Info", body: "Only spoof your device model if you want to download Apple Intelligence. This may break Face ID. If you decide to unspoof and want to keep Apple Intelligence, do NOT re-enter the Apple Intelligence & Siri menu in Settings.")
@@ -161,56 +169,58 @@ struct GestaltTweaksView: View {
                 }
                 .listRowSeparator(.hidden)
                 .listRowInsets(.dropdownRowInsets)
-                Section(header: HeaderLabel(text: "Custom Gestalt Keys", icon: "paintpalette")) {
-                    VStack(spacing: 12) {
-                        HStack {
-                            TextField("Gestalt Key", text: $customGestaltKey)
+                if showCustomKeys {
+                    Section(header: HeaderLabel(text: "Custom Gestalt Keys", icon: "paintpalette")) {
+                        VStack(spacing: 12) {
+                            HStack {
+                                TextField("Gestalt Key", text: $customGestaltKey)
+                                    .textFieldStyle(GlassyTextFieldStyle())
+                                Button(action: {
+                                    customGestaltKey = UIPasteboard.general.string ?? ""
+                                }) {
+                                    Image(systemName: "doc.on.doc")
+                                }
+                                .buttonStyle(GlassyButtonStyle(useFullWidth: false))
+                            }
+                            TextField("Gestalt Value (string)", text: $customGestaltValue)
                                 .textFieldStyle(GlassyTextFieldStyle())
                             Button(action: {
-                                customGestaltKey = UIPasteboard.general.string ?? ""
+                                customGestaltKeys[customGestaltKey] = customGestaltValue
+                                customGestaltKey = ""
+                                customGestaltValue = ""
                             }) {
-                                Image(systemName: "doc.on.doc")
+                                ButtonLabel(text: "Add Key", icon: "plus")
                             }
-                            .buttonStyle(GlassyButtonStyle(useFullWidth: false))
+                            .buttonStyle(GlassyButtonStyle(isDisabled: customGestaltKey.isEmpty || customGestaltValue.isEmpty))
                         }
-                        TextField("Gestalt Value (string)", text: $customGestaltValue)
-                            .textFieldStyle(GlassyTextFieldStyle())
-                        Button(action: {
-                            customGestaltKeys[customGestaltKey] = customGestaltValue
-                            customGestaltKey = ""
-                            customGestaltValue = ""
-                        }) {
-                            ButtonLabel(text: "Add Key", icon: "plus")
-                        }
-                        .buttonStyle(GlassyButtonStyle(isDisabled: customGestaltKey.isEmpty || customGestaltValue.isEmpty))
-                    }
-                    .padding()
-                    .modifier(DynamicGlassEffect(shape: AnyShape(.rect(cornerRadius: backgroundCornerRadius())), useBackground: false))
-                    
-                    ForEach(customGestaltKeys.keys.sorted(), id: \.self) { key in
-                        if let value = customGestaltKeys[key] {
-                            ListToggleItem(text: key, icon: "key", isOn: bindingForCustomGestaltKey(key: key, value: value))
-                                .contextMenu {
-                                    Button(action: {
-                                        Alertinator.shared.alert(title: "Custom Key Info", body: "Key: \(key)\nValue: \(value)")
-                                    }) {
-                                        Label("Get Info", systemImage: "info.circle")
+                        .padding()
+                        .modifier(DynamicGlassEffect(shape: AnyShape(.rect(cornerRadius: backgroundCornerRadius())), useBackground: false))
+                        
+                        ForEach(customGestaltKeys.keys.sorted(), id: \.self) { key in
+                            if let value = customGestaltKeys[key] {
+                                ListToggleItem(text: key, icon: "key", isOn: bindingForCustomGestaltKey(key: key, value: value))
+                                    .contextMenu {
+                                        Button(action: {
+                                            Alertinator.shared.alert(title: "Custom Key Info", body: "Key: \(key)\nValue: \(value)")
+                                        }) {
+                                            Label("Get Info", systemImage: "info.circle")
+                                        }
+                                        Button(action: {
+                                            // set the binding to false
+                                            bindingForCustomGestaltKey(key: key, value: value).wrappedValue = false
+                                            customGestaltKeys.removeValue(forKey: key)
+                                            customGestaltKeys[key] = nil
+                                        }) {
+                                            Label("Remove Key", systemImage: "key")
+                                        }
                                     }
-                                    Button(action: {
-                                        // set the binding to false
-                                        bindingForCustomGestaltKey(key: key, value: value).wrappedValue = false
-                                        customGestaltKeys.removeValue(forKey: key)
-                                        customGestaltKeys[key] = nil
-                                    }) {
-                                        Label("Remove Key", systemImage: "key")
-                                    }
-                                }
-                                .tint(.primary)
+                                    .tint(.primary)
+                            }
                         }
                     }
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(.dropdownRowInsets)
                 }
-                .listRowSeparator(.hidden)
-                .listRowInsets(.dropdownRowInsets)
             }
             .listStyle(.plain)
             .navigationTitle("Tweaks")

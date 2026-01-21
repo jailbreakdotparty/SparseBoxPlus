@@ -25,7 +25,7 @@
       "location" : "https://github.com/jailbreakdotparty/PartyUI",
       "state" : {
         "branch" : "main",
-        "revision" : "2813133f666bee5c8322ccaf7061d9a84761884c"
+        "revision" : "d7f140016c7650f7e27898b6141d6f57a17cc877"
       }
     },
     {
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio.git",
       "state" : {
-        "revision" : "4a9a97111099376854a7f8f0f9f88b9d61f52eff",
-        "version" : "2.92.2"
+        "revision" : "233f61bc2cfbb22d0edeb2594da27a20d2ce514e",
+        "version" : "2.93.0"
       }
     },
     {

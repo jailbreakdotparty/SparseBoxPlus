@@ -8,6 +8,7 @@
 import SwiftUI
 import UIKit
 import PartyUI
+import DeviceKit
 
 internal enum SelectableTab: Int, CaseIterable {
     case apply, tweaks, filesystem
@@ -16,6 +17,7 @@ internal enum SelectableTab: Int, CaseIterable {
 struct MainView: View {
     @EnvironmentObject var appData: AppData
     @State public var selectedTab: SelectableTab = .apply
+    let device = Device.current
     
     var body: some View {
         if UIDevice.current.userInterfaceIdiom == .pad {
@@ -51,6 +53,11 @@ struct MainView: View {
                     }
                 }
             }
+            .onAppear {
+                if doubleSystemVersion() > 26.1 || doubleSystemVersion() < 17.4 {
+                    Alertinator.shared.alert(title: "Unsupported Device Detected!", body: "This device (\(device.systemName!) \(device.systemVersion!), \(device.description)) does not support SparseBox+ and never will. Apologies for any inconviences.")
+                }
+            }
         } else {
             TabView(selection: $selectedTab) {
                 ApplyView()
@@ -62,6 +69,11 @@ struct MainView: View {
                 FilesystemView()
                     .tabItem { Label("Filesystem", systemImage: "folder")}
                     .tag(SelectableTab.filesystem)
+            }
+            .onAppear {
+                if doubleSystemVersion() > 26.1 || doubleSystemVersion() < 17.4 {
+                    Alertinator.shared.alert(title: "Unsupported Device Detected!", body: "This device (\(device.systemName!) \(device.systemVersion!), \(device.description)) does not support SparseBox+ and never will. Apologies for any inconviences.")
+                }
             }
             .overlay(alignment: .bottom) {
                 if doubleSystemVersion() < 26.0 {
