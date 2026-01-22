@@ -54,8 +54,10 @@ struct MainView: View {
                 }
             }
             .onAppear {
-                if doubleSystemVersion() > 26.1 || doubleSystemVersion() < 17.4 {
-                    Alertinator.shared.alert(title: "Unsupported Device Detected!", body: "This device (\(device.systemName!) \(device.systemVersion!), \(device.description)) does not support SparseBox+ and never will. Apologies for any inconviences.")
+                if isOSVersionPatched() && !weOnADebugBuild {
+                    Alertinator.shared.alert(title: "Unsupported Device Detected!", body: "This device (\(device.description) \(device.systemName!) \(device.systemVersion!)) does not support SparseBox+ and never will. Apologies for any inconviences.", showCancel: false, action: {
+                        exitinator()
+                    })
                 }
             }
         } else {
@@ -71,8 +73,10 @@ struct MainView: View {
                     .tag(SelectableTab.filesystem)
             }
             .onAppear {
-                if doubleSystemVersion() > 26.1 || doubleSystemVersion() < 17.4 {
-                    Alertinator.shared.alert(title: "Unsupported Device Detected!", body: "This device (\(device.systemName!) \(device.systemVersion!), \(device.description)) does not support SparseBox+ and never will. Apologies for any inconviences.")
+                if isOSVersionPatched() && !weOnADebugBuild {
+                    Alertinator.shared.alert(title: "Unsupported Device Detected!", body: "This device (\(device.description) \(device.systemName!) \(device.systemVersion!)) does not support SparseBox+ and never will. Apologies for any inconviences.", showCancel: false, action: {
+                        exitinator()
+                    })
                 }
             }
             .overlay(alignment: .bottom) {
