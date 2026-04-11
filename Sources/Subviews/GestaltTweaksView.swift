@@ -26,31 +26,30 @@ struct GestaltTweaksView: View {
             List {
                 Section(header: HeaderLabel(text: "Device Artwork", icon: "paintbrush.pointed")) {
                     HStack(spacing: 10) {
-                        TextField("Custom Device Name", text: $customDeviceName)
-                            .textFieldStyle(GlassyTextFieldStyle(isDisabled: hasCustomDeviceNameBeenSet))
-                        if hasCustomDeviceNameBeenSet {
+                        PrimaryTextFieldButton(titleKey: "Custom Device Name", text: $customDeviceName, button: {
                             Button(action: {
-                                Haptic.shared.play(.soft)
-                                hasCustomDeviceNameBeenSet = false
+                                withAnimation {
+                                    if hasCustomDeviceNameBeenSet {
+                                        Haptic.shared.play(.soft)
+                                        hasCustomDeviceNameBeenSet = false
+                                    } else {
+                                        Haptic.shared.play(.soft)
+                                        setDeviceModelName()
+                                    }
+                                }
                             }) {
-                                Image(systemName: "xmark")
-                                    .frame(width: 24, height: 24)
+                                Image(systemName: hasCustomDeviceNameBeenSet ? "xmark" : "checkmark")
+                                    .modifier(UpdatedIconAnimation(isOn: hasCustomDeviceNameBeenSet))
                             }
-                            .buttonStyle(GlassyButtonStyle(color: .red, useFullWidth: false))
-                        } else {
-                            Button(action: {
-                                Haptic.shared.play(.soft)
-                                setDeviceModelName()
-                            }) {
-                                Image(systemName: "checkmark")
-                                    .frame(width: 24, height: 24)
-                            }
-                            .buttonStyle(GlassyButtonStyle(color: .green, useFullWidth: false))
-                        }
+                        })
+                        .disabled(hasCustomDeviceNameBeenSet)
                     }
                     HStack {
                         Picker(selection: $appData.deviceSubtype) {
                             Text("Default (\(originalSubtype))").tag(originalSubtype)
+                            if isDeviceNotBroke() {
+                                Text("Disable Dynamic Island").tag(2436)
+                            }
                             Text("iPhone 14 Pro").tag(2436)
                             Text("iPhone 14 Pro Max").tag(2796)
                             Text("iPhone 15 Pro Max").tag(2976)
@@ -68,36 +67,39 @@ struct GestaltTweaksView: View {
                             ButtonLabel(text: "Subtype", icon: "iphone")
                         }
                         .frame(height: 22)
-                        .modifier(GlassyListRowBackground())
+                        .modifier(ListTogglePlatter())
                     }
                 }
                 .listRowSeparator(.hidden)
                 .listRowInsets(.dropdownRowInsets)
                 
                 Section(header: HeaderLabel(text: "Software-Oriented Features", icon: "gearshape")) {
-                    ListToggleItem(text: "Enable Dynamic Island", icon: "platter.filled.top.iphone", minSupportedVersion: 26.0, isOn: bindingForMGKeys(["YlEtTtHlNesRBMal1CqRaA"]))
-                    ListToggleItem(text: "Enable Always On Display", icon: "sun.max", minSupportedVersion: 18.0, isOn: bindingForMGKeys(["j8/Omm6s1lsmTDFsXjsBfA", "2OOJf1VhaM7NxfRok3HbWQ"]))
-                    ListToggleItem(text: "Enable Charge Limit", icon: "battery.100.bolt", minSupportedVersion: 17.0, isOn: bindingForMGKeys(["37NVydb//GP/GrhuTN+exg"]))
-                    ListToggleItem(text: "Enable Boot Chime", icon: "speaker.wave.3", isOn: bindingForMGKeys(["QHxt+hGLaBPbQJbXiUJX3w"]))
+                    PlatterToggle(text: "Dynamic Island", icon: "platter.filled.top.iphone", minSupportedVersion: 19.0, isOn: bindingForMGKeys(["YlEtTtHlNesRBMal1CqRaA"]))
+                    PlatterToggle(text: "Always On Display", icon: "sun.max", minSupportedVersion: 18.0, isOn: bindingForMGKeys(["j8/Omm6s1lsmTDFsXjsBfA", "2OOJf1VhaM7NxfRok3HbWQ"]))
+                    PlatterToggle(text: "AOD Vibrancy", icon: "rays", minSupportedVersion: 18.0, isOn: bindingForMGKeys(["ykpu7qyhqFweVMKtxNylWA"]))
+                    PlatterToggle(text: "Charge Limit", icon: "battery.100.bolt", minSupportedVersion: 17.0, isOn: bindingForMGKeys(["37NVydb//GP/GrhuTN+exg"]))
+                    PlatterToggle(text: "Boot Chime", icon: "speaker.wave.3", isOn: bindingForMGKeys(["QHxt+hGLaBPbQJbXiUJX3w"]))
+                    PlatterToggle(text: "Liquid Glass LPM", icon: "app.background.dotted", minSupportedVersion: 19.0, isOn: bindingForMGKeys(["SAGvsp6O6kAQ4fEfDJpC4Q"]))
                 }
                 .listRowSeparator(.hidden)
                 .listRowInsets(.dropdownRowInsets)
                 
                 Section(header: HeaderLabel(text: "Hardware-Oriented Features", icon: "iphone")) {
-                    ListToggleItem(text: "Enable Camera Control", icon: "camera.shutter.button", minSupportedVersion: 18.0, isOn: bindingForMGKeys(["CwvKxM2cEogD3p+HYgaW0Q", "oOV1jhJbdV3AddkcCg0AEA"]))
-                    ListToggleItem(text: "Enable Action Button", icon: "button.vertical.left.press", minSupportedVersion: 17.0, isOn: bindingForMGKeys(["cT44WE1EohiwRzhsZ8xEsw"]))
-                    ListToggleItem(text: "Enable Crash Detection", icon: "car", isOn: bindingForMGKeys(["HCzWusHQwZDea6nNhaKndw"]))
+                    PlatterToggle(text: "Camera Control", icon: "camera.shutter.button", minSupportedVersion: 18.0, isOn: bindingForMGKeys(["CwvKxM2cEogD3p+HYgaW0Q", "oOV1jhJbdV3AddkcCg0AEA"]))
+                    PlatterToggle(text: "Action Button", icon: "button.vertical.left.press", minSupportedVersion: 17.0, isOn: bindingForMGKeys(["cT44WE1EohiwRzhsZ8xEsw"]))
+                    PlatterToggle(text: "Crash Detection", icon: "car", isOn: bindingForMGKeys(["HCzWusHQwZDea6nNhaKndw"]))
                     if UIDevice._hasHomeButton() {
-                        ListToggleItem(text: "Enable Tap to Wake", icon: "hand.tap", isOn: bindingForMGKeys(["yZf3GTRMGTuwSV/lD7Cagw"]))
+                        PlatterToggle(text: "Enable Tap to Wake", icon: "hand.tap", isOn: bindingForMGKeys(["yZf3GTRMGTuwSV/lD7Cagw"]))
                     }
+                    PlatterToggle(text: "Pulse Width Modulation", icon: "eye", minSupportedVersion: 19.0, isOn: bindingForMGKeys(["6IejgN+1Fmu5/QrZFOIeNw"]))
                 }
                 .listRowSeparator(.hidden)
                 .listRowInsets(.dropdownRowInsets)
                 
                 Section(header: HeaderLabel(text: "Eligibility", icon: "checklist")) {
-                    ListToggleItem(text: "Enable SRD UI", icon: "terminal", minSupportedVersion: 26.0, isOn: bindingForMGKeys(["XYlJKKkj2hztRP1NWWnhlw"]))
-                    ListToggleItem(text: "Disable Region Restrictions", icon: "globe", isOn: bindingForRegionRestriction())
-                    ListToggleItem(text: "Enable Apple Intelligence", icon: "apple.intelligence", minSupportedVersion: 18.1, isOn: bindingForAppleIntelligence())
+                    PlatterToggle(text: "Security Research Device UI", icon: "terminal", minSupportedVersion: 26.0, isOn: bindingForMGKeys(["XYlJKKkj2hztRP1NWWnhlw"]))
+                    PlatterToggle(text: "Disable Region Restrictions", icon: "globe", isOn: bindingForRegionRestriction())
+                    PlatterToggle(text: "Apple Intelligence", icon: "apple.intelligence", minSupportedVersion: 18.1, isOn: bindingForAppleIntelligence())
                     HStack(spacing: 10) {
                         Picker("Spoofing", selection:$appData.productType) {
                             Text("Default").tag(machineName())
@@ -117,7 +119,7 @@ struct GestaltTweaksView: View {
                                     Text("iPhone 16 Pro").tag("iPhone17,1")
                                     Text("iPhone 16 Pro Max").tag("iPhone17,2")
                                 }
-                                if doubleSystemVersion() >= 26.0 {
+                                if doubleSystemVersion() >= 19.0 {
                                     Text("iPhone 17").tag("iPhone18,3")
                                     Text("iPhone 17 Pro").tag("iPhone18,1")
                                     Text("iPhone 17 Pro Max").tag("iPhone18,2")
@@ -126,14 +128,14 @@ struct GestaltTweaksView: View {
                             }
                         }
                         .frame(height: 22)
-                        .modifier(GlassyListRowBackground())
+                        .modifier(ListTogglePlatter())
                         Button(action: {
                             Alertinator.shared.alert(title: "Device Spoofing Info", body: "Only spoof your device model if you want to download Apple Intelligence. This may break Face ID. If you decide to unspoof and want to keep Apple Intelligence, do NOT re-enter the Apple Intelligence & Siri menu in Settings.")
                         }) {
                             Image(systemName: "info.circle")
                                 .frame(width: 24, height: 22)
                         }
-                        .buttonStyle(GlassyButtonStyle(useFullWidth: false))
+                        .buttonStyle(TranslucentButtonStyle(useFullWidth: false))
                     }
                 }
                 .listRowSeparator(.hidden)
@@ -142,13 +144,13 @@ struct GestaltTweaksView: View {
                 Section(header: HeaderLabel(text: "iPadOS Features", icon: "ipad")) {
                     let cacheExtra = appData.mobileGestalt["CacheExtra"] as? NSMutableDictionary
                     
-                    ListToggleItem(text: "Allow Installing iPadOS Apps", icon: "plus.app", isOn: bindingForMGKeys(["9MZ5AdH43csAUajl/dU+IQ"], type: [Int].self, defaultValue: [1], enableValue: [1, 2]))
-                    ListToggleItem(text: "Enable Apple Pencil Settings", icon: "pencil", isOn: bindingForMGKeys(["yhHcB0iH0d1XzPO/CFd3ow"]))
+                    PlatterToggle(text: "Allow Installing iPadOS Apps", icon: "plus.app", isOn: bindingForMGKeys(["9MZ5AdH43csAUajl/dU+IQ"], type: [Int].self, defaultValue: [1], enableValue: [1, 2]))
+                    PlatterToggle(text: "Apple Pencil Settings", icon: "pencil", isOn: bindingForMGKeys(["yhHcB0iH0d1XzPO/CFd3ow"]))
                     if UIDevice.current.userInterfaceIdiom == .pad {
-                        ListToggleItem(text: "Enable Stage Manager", icon: "squares.leading.rectangle", isOn: bindingForMGKeys(["qeaj75wk3HF4DwQ8qbIi7g"]))
+                        PlatterToggle(text: "Stage Manager", icon: "squares.leading.rectangle", isOn: bindingForMGKeys(["qeaj75wk3HF4DwQ8qbIi7g"]))
                     }
                     HStack(spacing: 10) {
-                        ListToggleItem(text: "Enable iPadOS UI", icon: "ipad", isOn: bindingForTrollPad())
+                        PlatterToggle(text: "iPadOS UI", icon: "ipad", isOn: bindingForTrollPad())
                             .disabled(cacheExtra?["+3Uf0Pm5F8Xy7Onyvko0vA"] as? String != "iPhone")
                         Button(action: {
                             Alertinator.shared.alert(title: "Warning!", body: "This changes the UI idiom to iPadOS, giving you multitasking features and other iPadOS UI elements. Gives the same capbilities as TrollPad, but may cause issues.\n\nWARNING: Please do not turn off \"Show Dock In Stage Manager\" or your device will BOOTLOOP when rotating to landscape. Also, do NOT use this tweak with an alphanumeric passcode!")
@@ -156,16 +158,16 @@ struct GestaltTweaksView: View {
                             Image(systemName: "exclamationmark.triangle")
                                 .frame(width: 24, height: 24)
                         }
-                        .buttonStyle(GlassyButtonStyle(color: .red, useFullWidth: false))
+                        .buttonStyle(TranslucentButtonStyle(color: .red, useFullWidth: false))
                     }
                 }
                 .listRowSeparator(.hidden)
                 .listRowInsets(.dropdownRowInsets)
                 
                 Section(header: HeaderLabel(text: "Internal", icon: "ant")) {
-                    ListToggleItem(text: "Enable Internal Storage", icon: "externaldrive", isOn: bindingForMGKeys(["LBJfwOEzExRxzlAnSuI7eg"]))
-                    ListToggleItem(text: "Enable Internal Features", icon: "gearshape", isOn: bindingForInternalStuff())
-                    ListToggleItem(text: "Metal HUD in All Apps", icon: "terminal", isOn: bindingForMGKeys(["EqrsVvjcYDdxHBiQmGhAWw"]))
+                    PlatterToggle(text: "Internal Storage", icon: "externaldrive", isOn: bindingForMGKeys(["LBJfwOEzExRxzlAnSuI7eg"]))
+                    PlatterToggle(text: "Internal Features", icon: "gearshape", isOn: bindingForInternalStuff())
+                    PlatterToggle(text: "Metal HUD in All Apps", icon: "terminal", isOn: bindingForMGKeys(["EqrsVvjcYDdxHBiQmGhAWw"]))
                 }
                 .listRowSeparator(.hidden)
                 .listRowInsets(.dropdownRowInsets)
@@ -174,16 +176,16 @@ struct GestaltTweaksView: View {
                         VStack(spacing: 12) {
                             HStack {
                                 TextField("Gestalt Key", text: $customGestaltKey)
-                                    .textFieldStyle(GlassyTextFieldStyle())
+                                    .modifier(PrimaryTextFieldStyle())
                                 Button(action: {
                                     customGestaltKey = UIPasteboard.general.string ?? ""
                                 }) {
                                     Image(systemName: "doc.on.doc")
                                 }
-                                .buttonStyle(GlassyButtonStyle(useFullWidth: false))
+                                .buttonStyle(TranslucentButtonStyle(useFullWidth: false))
                             }
                             TextField("Gestalt Value (string)", text: $customGestaltValue)
-                                .textFieldStyle(GlassyTextFieldStyle())
+                                .modifier(PrimaryTextFieldStyle())
                             Button(action: {
                                 customGestaltKeys[customGestaltKey] = customGestaltValue
                                 customGestaltKey = ""
@@ -191,14 +193,14 @@ struct GestaltTweaksView: View {
                             }) {
                                 ButtonLabel(text: "Add Key", icon: "plus")
                             }
-                            .buttonStyle(GlassyButtonStyle(isDisabled: customGestaltKey.isEmpty || customGestaltValue.isEmpty))
+                            .buttonStyle(TranslucentButtonStyle())
+                            .disabled(customGestaltKey.isEmpty || customGestaltValue.isEmpty)
                         }
-                        .padding()
-                        .modifier(DynamicGlassEffect(shape: AnyShape(.rect(cornerRadius: backgroundCornerRadius())), useBackground: false))
+                        .modifier(SectionPlatter(backgroundType: .systemBackground))
                         
                         ForEach(customGestaltKeys.keys.sorted(), id: \.self) { key in
                             if let value = customGestaltKeys[key] {
-                                ListToggleItem(text: key, icon: "key", isOn: bindingForCustomGestaltKey(key: key, value: value))
+                                PlatterToggle(text: key, icon: "key", isOn: bindingForCustomGestaltKey(key: key, value: value))
                                     .contextMenu {
                                         Button(action: {
                                             Alertinator.shared.alert(title: "Custom Key Info", body: "Key: \(key)\nValue: \(value)")
@@ -292,6 +294,7 @@ struct GestaltTweaksView: View {
                 }
                 DispatchQueue.main.async {
                     viewShouldUpdate.toggle()
+                    Haptic.shared.play(.soft)
                 }
             }
         )
@@ -317,6 +320,7 @@ struct GestaltTweaksView: View {
                 }
                 DispatchQueue.main.async {
                     viewShouldUpdate.toggle()
+                    Haptic.shared.play(.soft)
                 }
             }
         )
@@ -343,6 +347,7 @@ struct GestaltTweaksView: View {
                 cacheData.mutableBytes.storeBytes(of: enabled ? 1 : 0, toByteOffset: off_InternalBuild, as: Int.self)
                 DispatchQueue.main.async {
                     viewShouldUpdate.toggle()
+                    Haptic.shared.play(.soft)
                 }
             }
         )
@@ -366,6 +371,7 @@ struct GestaltTweaksView: View {
                 }
                 DispatchQueue.main.async {
                     viewShouldUpdate.toggle()
+                    Haptic.shared.play(.soft)
                 }
             }
         )
@@ -430,6 +436,7 @@ struct GestaltTweaksView: View {
                 }
                 DispatchQueue.main.async {
                     viewShouldUpdate.toggle()
+                    Haptic.shared.play(.soft)
                 }
             }
         )
@@ -458,6 +465,7 @@ struct GestaltTweaksView: View {
                 }
                 DispatchQueue.main.async {
                     viewShouldUpdate.toggle()
+                    Haptic.shared.play(.soft)
                 }
             }
         )

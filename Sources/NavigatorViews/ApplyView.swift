@@ -13,7 +13,7 @@ func backgroundCornerRadius() -> CGFloat {
 
 func smallPlatterCornerRadius() -> CGFloat {
     if #available(iOS 26.0, *) {
-        return 16
+        return 18
     } else {
         return 12
     }
@@ -23,8 +23,6 @@ struct ApplyView: View {
     @Environment(\.scenePhase) var scenePhase
     @State var pairingFile: String?
     @State var mbdb: Backup?
-    @State var heartbeatReady = false
-    @State var ddiMounted = false
     @State var showPairingFileImporter = false
     @State var taskRunning = false
     @State private var showSettingsView: Bool = false
@@ -32,64 +30,79 @@ struct ApplyView: View {
     @State private var hasShownWelcome: Bool = false
     
     @EnvironmentObject var appData: AppData
-    @AppStorage("shouldRespring") var shouldRespring: Bool = true
-    @AppStorage("showCustomKeys") var showCustomKeys: Bool = false
-    @AppStorage("BookassetdContainerUUID") var bookassetdUUID: String?
     
     let device = Device.current
     
     var body: some View {
         NavigationStack {
             List {
-                Section(header: HeaderLabel(text: "Version \(UIApplication.appVersion!) (\(weOnADebugBuild ? "Debug" : "Release"))", icon: "info.circle")) {
-                    VStack(alignment: .leading) {
-                        HStack {
-                            if appData.applicationIcon == "showMeProgressPlease" {
-                                ProgressView()
-                                    .offset(y: 1)
-                            } else {
-                                Image(systemName: appData.applicationIcon)
-                                    .foregroundStyle(appData.applicationIconColor)
+                Section(header: HeaderLabel(text: "Version \(UIApplication.appVersion!) (\(weOnADebugBuild ? "Debug" : "Release"))", icon: "info.circle"), footer: Text("Made with love by lunginspector for the [jailbreak.party](https://jailbreak.party/) team.\n[Join the jailbreak.party Discord!](https://jailbreak.party/discord)").font(.footnote)) {
+                    Group {
+                        VStack(alignment: .leading) {
+                            HStack {
+                                if appData.applicationIcon == "showMeProgressPlease" {
+                                    ProgressView()
+                                        .offset(y: 1)
+                                } else {
+                                    Image(systemName: appData.applicationIcon)
+                                        .foregroundStyle(appData.applicationIconColor)
+                                }
+                                Text(appData.applicationStatus)
+                                    .fontWeight(.semibold)
                             }
-                            Text(appData.applicationStatus)
-                                .fontWeight(.semibold)
-                        }
-                        Text("HTTP Server Port: \(String(Utils.port))")
-                        if showLogs {
-                            TerminalContainer(content: VStack {
+                            if showLogs {
                                 LogView()
-                            })
+                                    .modifier(TerminalPlatter())
+                            }
+                            if !device.isPad {
+                                HStack {
+                                    HStack {
+                                        Image(systemName: appData.heartbeatReady ? "checkmark.circle" : "xmark.circle")
+                                        Text(appData.heartbeatReady ? "Ready" : "Not Ready")
+                                    }
+                                    .foregroundStyle(appData.heartbeatReady ? .green : .red)
+                                    .frame(maxWidth: .infinity)
+                                    .modifier(SmallInfoPlatter())
+                                    HStack {
+                                        Image(systemName: appData.ddiMounted ? "checkmark.circle" : "xmark.circle")
+                                        Text(appData.ddiMounted ? "Mounted" : "Not Mounted")
+                                    }
+                                    .foregroundStyle(appData.ddiMounted ? .green : .red)
+                                    .frame(maxWidth: .infinity)
+                                    .modifier(SmallInfoPlatter())
+                                }
+                            }
                         }
-                        HStack {
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .modifier(SectionPlatter())
+                        
+                        if device.isPad {
                             HStack {
-                                Image(systemName: heartbeatReady ? "checkmark.circle" : "xmark.circle")
-                                Text(heartbeatReady ? "Ready" : "Not Ready")
+                                HStack {
+                                    Image(systemName: appData.heartbeatReady ? "checkmark.circle" : "xmark.circle")
+                                    Text(appData.heartbeatReady ? "Ready" : "Not Ready")
+                                }
+                                .foregroundStyle(appData.heartbeatReady ? .green : .red)
+                                .frame(maxWidth: .infinity)
+                                .modifier(SmallInfoPlatter())
+                                HStack {
+                                    Image(systemName: appData.ddiMounted ? "checkmark.circle" : "xmark.circle")
+                                    Text(appData.ddiMounted ? "Mounted" : "Not Mounted")
+                                }
+                                .foregroundStyle(appData.ddiMounted ? .green : .red)
+                                .frame(maxWidth: .infinity)
+                                .modifier(SmallInfoPlatter())
                             }
-                            .foregroundStyle(heartbeatReady ? .green : .red)
-                            .padding(12)
-                            .frame(maxWidth: .infinity)
-                            .modifier(DynamicGlassEffect(color: secondaryBackgroundColor(), shape: AnyShape(.rect(cornerRadius: smallPlatterCornerRadius()))))
-                            
-                            HStack {
-                                Image(systemName: ddiMounted ? "checkmark.circle" : "xmark.circle")
-                                Text(ddiMounted ? "Mounted" : "Not Mounted")
-                            }
-                            .foregroundStyle(ddiMounted ? .green : .red)
-                            .padding(12)
-                            .frame(maxWidth: .infinity)
-                            .modifier(DynamicGlassEffect(color: secondaryBackgroundColor(), shape: AnyShape(.rect(cornerRadius: smallPlatterCornerRadius()))))
                         }
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .modifier(DynamicGlassEffect(shape: AnyShape(.rect(cornerRadius: backgroundCornerRadius())), useBackground: false))
                     .listRowBackground(Color.clear)
-                    .listRowInsets(.zeroInsets)
+                    .listRowInsets(device.isPad ? .dropdownRowInsets : .zeroInsets)
                 }
+                .modifier(ConditionalListModifiers())
                 
-                if ddiMounted || weOnADebugBuild {
+                if appData.ddiMounted || weOnADebugBuild {
                     Section(header: HeaderLabel(text: "Actions", icon: "wrench.and.screwdriver")) {
-                        VStack {
+                        VStack(spacing: device.isPad ? 12 : 14) {
                             Button(action: {
                                 Haptic.shared.play(.soft)
                                 saveProductType(appData: AppData.shared)
@@ -108,7 +121,7 @@ struct ApplyView: View {
                             }) {
                                 ButtonLabel(text: "Apply Tweaks", icon: "checkmark")
                             }
-                            .buttonStyle(GlassyButtonStyle(color: .green))
+                            .buttonStyle(TranslucentButtonStyle(color: .green))
                             
                             HStack {
                                 Button(action: {
@@ -130,7 +143,7 @@ struct ApplyView: View {
                                 }) {
                                     ButtonLabel(text: "Revert", icon: "xmark")
                                 }
-                                .buttonStyle(GlassyButtonStyle(color: .red))
+                                .buttonStyle(TranslucentButtonStyle(color: .red))
                                 Button(action: {
                                     Haptic.shared.play(.heavy)
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
@@ -139,43 +152,22 @@ struct ApplyView: View {
                                 }) {
                                     ButtonLabel(text: "Respring", icon: "gobackward")
                                 }
-                                .buttonStyle(GlassyButtonStyle(color: .orange))
+                                .buttonStyle(TranslucentButtonStyle(color: .orange))
                             }
                         }
                     }
+                    .modifier(ConditionalListModifiers())
                 }
                 
-                if ddiMounted || weOnADebugBuild {
-                    Section(header: HeaderLabel(text: "Application Settings", icon: "gear"), footer: Text("**WARNING:** Enabling the custom gestalt keys feature is super dangerous, and if not used properly, will brick your device! Please do not use this feature unless you know what you are doing.")) {
-                        HStack {
-                            TextField("bookassetsd UUID", text: Binding(
-                                get: { bookassetdUUID ?? "" },
-                                set: { bookassetdUUID = $0.isEmpty ? nil : $0 }
-                            ))
-                            .textFieldStyle(GlassyTextFieldStyle(isDisabled: bookassetdUUID == nil))
-                            Button(action: {
-                                bookassetdUUID = nil
-                            }) {
-                                Image(systemName: "xmark")
-                                    .frame(width: 24, height: 24)
-                            }
-                            .buttonStyle(GlassyButtonStyle(isDisabled: bookassetdUUID == nil, color: .red, useFullWidth: false))
-                        }
-                        .disabled(bookassetdUUID == nil)
-                        Toggle("Respring After Finish Restoring", isOn: $shouldRespring)
-                        Toggle("Enable Custom Gestalt Keys", isOn: $showCustomKeys)
-                    }
-                }
-                
-                Section(header: HeaderLabel(text: "Device Pairing", icon: "doc"), footer: Text(ddiMounted ? "If you've already imported a pairing file, and the things above aren't green, then make sure that you actually enabled LocalDevVPN. Also ensure that your pairing file has not expired." : heartbeatReady ? "The Developer Disk Image is not mounted." : "Select or drag and drop a pairing file to continue. If you do not have one, click [here](https://docs.sidestore.io/docs/getting-started/pairing-file) to learn how to generate one.")) {
-                    VStack(spacing: 14) {
+                Section(header: HeaderLabel(text: "Device Pairing", icon: "doc"), footer: Text(appData.ddiMounted ? "If you've already imported a pairing file, and the things above aren't green, then make sure that you actually enabled LocalDevVPN. Also ensure that your pairing file has not expired.\n\nHTTP Server Port: \(String(Utils.port))" : appData.heartbeatReady ? "The Developer Disk Image is not mounted.\n\nHTTP Server Port: \(String(Utils.port))" : "Select or drag and drop a pairing file to continue. If you do not have one, click [here](https://docs.sidestore.io/docs/getting-started/pairing-file) to learn how to generate one.\n\nHTTP Server Port: \(String(Utils.port))").font(.footnote)) {
+                    VStack(spacing: device.isPad ? 12 : 14) {
                         Button(action: {
                             if pairingFile == nil {
                                 showPairingFileImporter.toggle()
                             } else {
                                 pairingFile = nil
-                                heartbeatReady = false
-                                ddiMounted = false
+                                appData.heartbeatReady = false
+                                appData.ddiMounted = false
                                 appData.isSparseBoxReady = false
                                 appData.applicationStatus = "Please import a pairing file!"
                                 appData.applicationIcon = "exclamationmark.triangle.fill"
@@ -187,7 +179,7 @@ struct ApplyView: View {
                         }) {
                             ButtonLabel(text: pairingFile == nil ? "Import Pairing File" : "Remove Pairing File", icon: pairingFile == nil ? "arrow.down.doc" : "xmark")
                         }
-                        .buttonStyle(GlassyButtonStyle(color: pairingFile == nil ? .green : .red))
+                        .buttonStyle(TranslucentButtonStyle(color: pairingFile == nil ? .green : .red))
                         .dropDestination(for: Data.self) { items, location in
                             guard let item = items.first else { return false }
                             pairingFile = String(decoding: item, as: UTF8.self)
@@ -200,37 +192,20 @@ struct ApplyView: View {
                             startHeartbeat()
                             return true
                         }
-                        if !ddiMounted {
+                        if !appData.ddiMounted {
                             Button(action: {
                                 LSApplicationWorkspaceDefaultWorkspace().openApplication(withBundleID: "com.jkcoxson.LocalDevVPN")
                             }) {
                                 ButtonLabel(text: "Open LocalDevVPN", icon: "link")
                             }
-                            .buttonStyle(GlassyButtonStyle())
+                            .buttonStyle(TranslucentButtonStyle())
                         }
                     }
                 }
-                /*
-                Section(header: HeaderLabel(text: "Tweaks", icon: "wrench.and.screwdriver"), footer: Text(Restore.supportedExploitLevel() != .unsupported ? "Hide free developer apps from installd, so you could install more than 3 apps. You need to apply this for each 3 apps you install or update. **This feature is currently unavailable as of right now.**" : "")) {
-                    let tempUnavailable = true
-                    NavigationLink("List Installed Apps") {
-                        AppListView()
-                    }
-                    .disabled(!ddiMounted)
-                    NavigationLink("MobileGestalt Tweaks") {
-                        MobileGestaltView()
-                    }
-                    .disabled(!ddiMounted)
-                    if Restore.supportedExploitLevel() != .unsupported {
-                        Button("Bypass 3-App Limit") {
-                            testBypassAppLimit()
-                        }
-                        .disabled(tempUnavailable || Restore.supportedExploitLevel() != .dotAndSlashes || !heartbeatReady || taskRunning)
-                    }
-                }
-                 */
+                .modifier(ConditionalListModifiers())
             }
             .navigationTitle("SparseBox+")
+            .modifier(ConditionalListStyle())
             .sheet(isPresented: $showSettingsView) {
                 SettingsView()
             }
@@ -241,6 +216,7 @@ struct ApplyView: View {
                     }) {
                         Image(systemName: "gearshape")
                     }
+                    .modifier(SolariumButtonTint())
                 }
                 
                 ToolbarItem(placement: .topBarTrailing) {
@@ -249,6 +225,7 @@ struct ApplyView: View {
                     }) {
                         Image(systemName: "terminal")
                     }
+                    .modifier(SolariumButtonTint())
                 }
             }
             .onAppear {
@@ -294,7 +271,7 @@ struct ApplyView: View {
             }
             
             if pairingFile != nil {
-                if !ddiMounted {
+                if !appData.ddiMounted {
                     appData.applicationStatus = "Waiting for heartbeat..."
                     appData.applicationIcon = "showMeProgressPlease"
                     appData.applicationIconColor = .primary
@@ -349,7 +326,7 @@ struct ApplyView: View {
         DispatchQueue.global(qos: .userInteractive).async {
             do {
                 try JITEnableContext.shared.startHeartbeat()
-                heartbeatReady = true
+                appData.heartbeatReady = true
                 print("Heartbeat started successfully")
                 
                 // quick way to check if DDI is mounted
@@ -359,11 +336,11 @@ struct ApplyView: View {
                 } else {
                     ddiPath = "/Developer/Library"
                 }
-                ddiMounted = FileManager.default.fileExists(atPath: ddiPath)
+                appData.ddiMounted = FileManager.default.fileExists(atPath: ddiPath)
                 
-                if ddiMounted {
+                if appData.ddiMounted {
                     Task { @MainActor in
-                        appData.applicationStatus = "Ready to Apply"
+                        appData.applicationStatus = "Ready to Apply!"
                         appData.applicationIcon = "checkmark.circle.fill"
                         appData.applicationIconColor = .primary
                         appData.isSparseBoxReady = true
@@ -445,7 +422,48 @@ struct ApplyView: View {
     }
     
     func ready() -> Bool {
-        heartbeatReady
+        appData.heartbeatReady
+    }
+}
+
+// i hate ipads so much.
+struct ConditionalListStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        let device = Device.current
+        if device.isPad {
+            content
+                .listStyle(.plain)
+        } else {
+            content
+                .listStyle(.insetGrouped)
+        }
+    }
+}
+
+struct ConditionalListModifiers: ViewModifier {
+    func body(content: Content) -> some View {
+        let device = Device.current
+        if device.isPad {
+            content
+                .listRowSeparator(.hidden)
+                .listRowInsets(.dropdownRowInsets)
+        } else {
+            content
+        }
+    }
+}
+
+struct ConditionalListModifiersTerminal: ViewModifier {
+    func body(content: Content) -> some View {
+        let device = Device.current
+        if device.isPad {
+            content
+                .listRowSeparator(.hidden)
+                .listRowInsets(.dropdownRowInsets)
+        } else {
+            content
+                .listRowInsets(.zeroInsets)
+        }
     }
 }
 

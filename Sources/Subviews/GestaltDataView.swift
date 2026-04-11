@@ -23,14 +23,14 @@ struct GestaltDataView: View {
                         }) {
                             ButtonLabel(text: "Export Modified MobileGestalt", icon: "doc.badge.gearshape")
                         }
-                        .buttonStyle(GlassyButtonStyle())
+                        .buttonStyle(TranslucentButtonStyle())
                     }
                     Button(action: {
                         presentShareSheet(with: appData.origMGURL)
                     }) {
                         ButtonLabel(text: "Export Original MobileGestalt", icon: "arrow.up.doc")
                     }
-                    .buttonStyle(GlassyButtonStyle())
+                    .buttonStyle(TranslucentButtonStyle())
                 }
             }
         }

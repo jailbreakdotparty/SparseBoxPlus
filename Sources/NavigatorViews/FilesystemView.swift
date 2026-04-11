@@ -15,18 +15,11 @@ struct FilesystemView: View {
         NavigationStack {
             List {
                 Section(header: HeaderLabel(text: "Tools", icon: "wrench.and.screwdriver")) {
-                    NavigationLink(destination: AppListView()) {
-                        ButtonLabel(text: "List Installed Apps", icon: "app")
-                    }
-                    .disabled(!appData.isSparseBoxReady)
-                    NavigationLink(destination: BrowseFSView()) {
-                        ButtonLabel(text: "Browse AFC (Media)", icon: "photo")
-                    }
-                    .disabled(!appData.isSparseBoxReady)
-                    NavigationLink(destination: GestaltDataView()) {
-                        ButtonLabel(text: "View MobileGestalt Data", icon: "doc")
-                    }
-                    .disabled(!appData.isSparseBoxReady)
+                    NavigationLink("List Installed Apps", destination: AppListView())
+                        .disabled(!appData.isSparseBoxReady && !weOnADebugBuild)
+                    NavigationLink("Browse AFC (Media)", destination: BrowseFSView())
+                        .disabled(!appData.isSparseBoxReady)
+                    NavigationLink("View MobileGestalt Data", destination: GestaltDataView())
                 }
             }
             .navigationTitle("Filesystem")

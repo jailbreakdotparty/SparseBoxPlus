@@ -28,6 +28,10 @@ final class AppData: ObservableObject {
     @Published var applicationIconColor: Color = .primary
     @Published var applicationStatus: String = "Waiting for heartbeat..."
     
+    @Published var ddiMounted: Bool = false
+    @Published var heartbeatReady: Bool = false
+    @Published var isAppReady: Bool = false
+    
     let origMGURL, modMGURL, featFlagsURL: URL
     
     init() {
@@ -73,12 +77,12 @@ func performApplyMobileGestalt(appData: AppData) async throws {
     // get bookassetd container uuid
     if bookassetdUUID == nil {
         appData.applicationStatus = "Getting bookassestd UUID..."
-        Alertinator.shared.alert(title: "Books UUID Required", body: "SparseBox needs to get the UUID from bookasstd,. Please download a book from the Books app while this one is running, then come back here.", showCancel: false, actionLabel: "continue", action: {
+        Alertinator.shared.alert(title: "Books UUID Required", body: "SparseBox+ needs to get the UUID of bookassestd. Click \"Continue\" and download a book.", showCancel: false, actionLabel: "Continue", action: {
             LSApplicationWorkspaceDefaultWorkspace().openApplication(withBundleID: "com.apple.iBooks")
         })
         
         print("Finding bookassetd container UUID...")
-        print("Please open Books app and download a book to continue.")
+        print("Please open the Books app and download a book to continue.")
         line = try await waitForSyslogLine(matches: { $0.contains("bookassetd") && $0.contains("/Documents/BLDownloads/") })
         
         // Return to SparseBox

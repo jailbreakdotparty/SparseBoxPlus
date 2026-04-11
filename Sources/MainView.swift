@@ -16,46 +16,33 @@ internal enum SelectableTab: Int, CaseIterable {
 
 struct MainView: View {
     @EnvironmentObject var appData: AppData
+    @EnvironmentObject var theme: AppTheme
+    
     @State public var selectedTab: SelectableTab = .apply
+    
+    @AppStorage("showFilesystemPage") var showFilesystemPage: Bool = false
+    
     let device = Device.current
     
     var body: some View {
         if UIDevice.current.userInterfaceIdiom == .pad {
             NavigationSplitView {
                 ApplyView()
-                    .navigationSplitViewColumnWidth(400)
+                    .navigationSplitViewColumnWidth(385)
             } detail: {
-                Group {
-                    switch selectedTab {
-                    case .tweaks:
-                        GestaltTweaksView()
-                            .modifier(PrimaryViewModifier())
-                    case .filesystem:
-                        FilesystemView()
-                            .modifier(PrimaryViewModifier())
-                    default:
-                        TweaksView()
-                            .modifier(PrimaryViewModifier())
-                    }
+                TabView(selection: $selectedTab) {
+                    GestaltTweaksView()
+                        .tabItem { Label("Tweaks", systemImage: "wrench.and.screwdriver") }
+                        .tag(SelectableTab.tweaks)
+                    FilesystemView()
+                        .tabItem { Label("Filesystem", systemImage: "folder") }
+                        .tag(SelectableTab.filesystem)
                 }
-                .toolbar {
-                    ToolbarItemGroup(placement: .topBarLeading) {
-                        Button(action: {
-                            selectedTab = .tweaks
-                        }) {
-                            Image(systemName: "wrench.and.screwdriver")
-                        }
-                        Button(action: {
-                            selectedTab = .filesystem
-                        }) {
-                            Image(systemName: "checklist")
-                        }
-                    }
-                }
+                .toolbar(.hidden, for: .navigationBar)
             }
             .onAppear {
                 if isOSVersionPatched() && !weOnADebugBuild {
-                    Alertinator.shared.alert(title: "Unsupported Device Detected!", body: "This device (\(device.description) \(device.systemName!) \(device.systemVersion!)) does not support SparseBox+ and never will. Apologies for any inconviences.", showCancel: false, action: {
+                    Alertinator.shared.alert(title: "Unsupported Device Detected!", body: "This device (\(device.description), \(device.systemName!) \(device.systemVersion!)) does not support SparseBox+ and never will. Apologies for any inconviences.", showCancel: false, action: {
                         exitinator()
                     })
                 }
@@ -63,20 +50,19 @@ struct MainView: View {
         } else {
             TabView(selection: $selectedTab) {
                 ApplyView()
-                    .tabItem { Label("Apply", systemImage: "house") }
+                    .tabItem { Label("Apply", systemImage: "gear.badge.checkmark") }
                     .tag(SelectableTab.apply)
                 GestaltTweaksView()
-                    .tabItem { Label("Tweaks", systemImage: "wrench.and.screwdriver")}
+                    .tabItem { Label("Tweaks", systemImage: "wrench.and.screwdriver") }
                     .tag(SelectableTab.tweaks)
-                FilesystemView()
-                    .tabItem { Label("Filesystem", systemImage: "folder")}
-                    .tag(SelectableTab.filesystem)
-            }
-            .onAppear {
-                if isOSVersionPatched() && !weOnADebugBuild {
-                    Alertinator.shared.alert(title: "Unsupported Device Detected!", body: "This device (\(device.description) \(device.systemName!) \(device.systemVersion!)) does not support SparseBox+ and never will. Apologies for any inconviences.", showCancel: false, action: {
-                        exitinator()
-                    })
+                if !showFilesystemPage {
+                    GestaltDataView()
+                        .tabItem { Label("Gestalt", systemImage: "doc.text") }
+                        .tag(SelectableTab.filesystem)
+                } else {
+                    FilesystemView()
+                        .tabItem { Label("Filesystem", systemImage: "folder") }
+                        .tag(SelectableTab.filesystem)
                 }
             }
             .overlay(alignment: .bottom) {
@@ -100,17 +86,28 @@ struct MainView: View {
                 }
             }
             .edgesIgnoringSafeArea(.bottom)
+            .onAppear {
+                if isOSVersionPatched() && !weOnADebugBuild {
+                    Alertinator.shared.alert(title: "Unsupported Device Detected!", body: "This device (\(device.description) \(device.systemName!) \(device.systemVersion!)) does not support SparseBox+ and never will. Apologies for any inconviences.", showCancel: false, action: {
+                        exitinator()
+                    })
+                }
+            }
+            .onChange(of: selectedTab) {
+                Haptic.shared.play(.soft, intensity: 0.6)
+            }
         }
     }
 }
 
 struct PrimaryViewModifier: ViewModifier {
     @EnvironmentObject var appData: AppData
+    @EnvironmentObject var theme: AppTheme
     
     func body(content: Content) -> some View {
         content
             .disabled(!weOnADebugBuild && !appData.isSparseBoxReady)
-            .tint(!weOnADebugBuild && !appData.isSparseBoxReady ? .gray : .accent)
+            .tint(!weOnADebugBuild && !appData.isSparseBoxReady ? .gray : theme.accentColor)
     }
 }
 

@@ -1,7 +1,6 @@
 {
   "images" : [
     {
-      "filename" : "SparseBoxPlusAppIcon_Regular.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -24,7 +23,6 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "SparseBoxAppIcon_Tinted.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"

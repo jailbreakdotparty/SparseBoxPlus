@@ -6,23 +6,23 @@ struct AppItemView: View {
     let bundleID: String
     var body: some View {
         Form {
-            NavigationLink {
-                List {
-                    ForEach(Array(appDetails.keys), id: \.self) { k in
-                        let v = appDetails[k] as? String
-                        VStack(alignment: .leading) {
-                            Text(k)
-                            Text(v ?? "(not a String)")
-                                .font(Font.footnote)
-                                .textSelection(.enabled)
+            if doubleSystemVersion() <= 18.1 || doubleSystemVersion() >= 26.0 {
+                NavigationLink {
+                    List {
+                        ForEach(Array(appDetails.keys), id: \.self) { k in
+                            let v = appDetails[k] as? String
+                            VStack(alignment: .leading) {
+                                Text(k)
+                                Text(v ?? "(not a String)")
+                                    .font(Font.footnote)
+                                    .textSelection(.enabled)
+                            }
                         }
                     }
+                    .navigationTitle((appDetails["CFBundleName"] as? String) ?? bundleID)
+                } label: {
+                    Text("View App Details")
                 }
-                .navigationTitle((appDetails["CFBundleName"] as? String) ?? bundleID)
-            } label: {
-                Text("View App Details")
-            }
-            if doubleSystemVersion() <= 18.1 || doubleSystemVersion() >= 26.0 {
                 Section(header: HeaderLabel(text: "Arbitrary Read Exploit", icon: "paperclip"), footer: Text("After the path gets copied, open Settings, paste the link into the search bar, select all the text, and tap \"Share\". For this exploit, folders can only be shared via AirDrop.\n\nIf you're sharing App Store apps, please note that it will still remain encrypted.")) {
                     VStack(spacing: 12) {
                         if let bundlePath = appDetails["Path"] {
@@ -35,10 +35,9 @@ struct AppItemView: View {
                             }) {
                                 ButtonLabel(text: "Copy App Bundle Folder", icon: "shippingbox")
                             }
-                            .buttonStyle(GlassyButtonStyle())
+                            .buttonStyle(TranslucentButtonStyle())
                         }
                         if let containerPath = appDetails["Container"] {
-                            
                             Button(action: {
                                 Haptic.shared.play(.soft)
                                 UIPasteboard.general.string = "file://a\(containerPath)"
@@ -48,10 +47,23 @@ struct AppItemView: View {
                             }) {
                                 ButtonLabel(text: "Copy App Data Folder", icon: "externaldrive")
                             }
-                            .buttonStyle(GlassyButtonStyle())
+                            .buttonStyle(TranslucentButtonStyle())
                         }
                     }
                 }
+            } else {
+                List {
+                    ForEach(Array(appDetails.keys), id: \.self) { k in
+                        let v = appDetails[k] as? String
+                        VStack(alignment: .leading) {
+                            Text(k)
+                            Text(v ?? "(not a String)")
+                                .font(Font.footnote)
+                                .textSelection(.enabled)
+                        }
+                    }
+                }
+                .navigationTitle((appDetails["CFBundleName"] as? String) ?? bundleID)
             }
         }
         .navigationTitle((appDetails["CFBundleName"] as? String) ?? bundleID)
@@ -116,7 +128,9 @@ struct AppListView: View {
                         }
                     } label: {
                         HStack(spacing: 12) {
-                            ImageRenderingView(image: Image(uiImage: appIcons[bundleID] ?? UIImage()), cornerRadius: appIconCornerRadius(), width: 50, height: 50, useBackground: true)
+                            Image(uiImage: appIcons[bundleID] ?? UIImage())
+                                .resizable()
+                                .frame(width: 50, height: 50)
                                 .task(id: bundleID) {
                                     guard appIcons[bundleID] == nil else { return }
                                     await MainActor.run {
@@ -155,7 +169,7 @@ struct AppListView: View {
                 }
             }
             .searchable(text: $searchString)
-            .navigationTitle("Applist")
+            .navigationTitle("Listed Applications")
         }
         .modifier(PrimaryViewModifier())
     }

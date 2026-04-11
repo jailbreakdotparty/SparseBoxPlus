@@ -7,6 +7,7 @@ import PartyUI
 
 var weOnADebugBuild: Bool = false
 
+// move this bullshit over too
 extension UIDocumentPickerViewController {
     @objc func fix_init(forOpeningContentTypes contentTypes: [UTType], asCopy: Bool) -> UIDocumentPickerViewController {
         return fix_init(forOpeningContentTypes: contentTypes, asCopy: true)
@@ -16,6 +17,7 @@ extension UIDocumentPickerViewController {
 @main
 struct MyApp: App {
     @StateObject private var appData = AppData.shared
+    @StateObject private var theme = AppTheme()
     
     init() {
         //setenv("RUST_LOG", "trace", 1)
@@ -41,6 +43,9 @@ struct MyApp: App {
     var body: some Scene {
         WindowGroup {
             MainView()
+                .environmentObject(theme)
+                .tint(theme.accentColor)
+                .preferredColorScheme(theme.appearance.appearances)
                 .environmentObject(appData)
         }
     }
@@ -73,6 +78,15 @@ func isOSVersionPatched() -> Bool {
         } else {
             print("sysctlbyname failed with error: \(String(cString: strerror(errno)))")
         }
+        return true
+    } else {
+        return false
+    }
+}
+
+func isDeviceNotBroke() -> Bool {
+    let supportedDevices = ["iPhone 14 Pro", "iPhone 14 Pro Max", "iPhone 15", "iPhone 15 Plus", "iPhone 15 Pro", "iPhone 15 Pro Max", "iPhone 16", "iPhone 16 Plus", "iPhone 16 Pro", "iPhone 16 Pro Max", "iPhone 17", "iPhone 17 Pro", "iPhone 17 Pro Max", "iPhone Air"]
+    if supportedDevices.contains(Device.current.description) {
         return true
     } else {
         return false
