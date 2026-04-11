@@ -1,41 +1,31 @@
-# SparseBox+
-**SparseBox, but with a proper UI. iOS 17.4 - iOS 26.1.**
+<div align="center">
+  <br>
+  <a href="https://jailbreak.party/discord"><img src="https://raw.githubusercontent.com/jailbreakdotparty/SparseBoxPlus/refs/heads/xcodeproj/SparseBoxPlusAppIcon.png" alt="SparseBoxPlus Icon" width="150"></a>
+  <br>
+  <h1>SparseBoxPlus</h1>
+  <p>A MobileGestalt customization toolbox using <a href="https://github.com/hanakim3945/bl_sbx">bl_sbx</a> (BookRestore). Forked from <a href="https://github.com/khanhduytran0/SparseBox">SparseBox.</a></p>
+  <p>Supports iOS 17.4 - iOS 26.1 (with exceptions, check support table).</p>
+  <p><a href="https://github.com/jailbreakdotparty/SparseBoxPlus/releases/latest">Download</a> • <a href="https://jailbreak.party/discord">Discord</a> • <a href="https://jailbreak.party">Website</a></p>
+</div>
 
-[Download](https://github.com/jailbreakdotparty/SparseBoxPlus/releases/latest) • [jbdotparty Discord](https://jailbreak.party/discord) • [jbdotparty Website](https://jailbreak.party)
 >[!WARNING]
->This tool has the potential to break or bootloop your device! Please create a backup before any further usage.
+>This tool may cause unexpected behavior to occur on your device, and, in rare cases, could cause bootloops. Please create a backup before usage!
+
+## Support Table
+| iOS Version | Support Status |
+| - | - |
+| iOS 17.3.1< | Not Supported |
+| iOS 17.4 - iOS 17.7.x | Supported |
+| iOS 18.0 - iOS 18.7.4 | Supported |
+| iOS 18.7.5+ | Not Supported |
+| iOS 26.0 - iOS 26.1 | Supported |
+| iOS 26.2 beta 1 (23C5027f) | Supported |
+| iOS 26.2+ | Not Supported |
 
 ## How do I use this tool?
 * [SideStore](https://sidestore.io) is recommended for installation, as this method will also give you the pairing file needed for this application.
 * You will also need [LocalDevVPN](https://apps.apple.com/us/app/localdevvpn/id6755608044) to use this tool, which is available on the App Store.
 * If, for whatever reason, you want to uninstall SparseBox+, please REVERT your tweaks beforehand. Otherwise, you will NOT be able to revert your tweaks without having to either factory reset your device or use the reset gestalt button in Nugget. Please don't sideload this app with a sideloading method that's prone to revokes!
-
-## Features
-- MobileGestalt Tweaks
-  - Subtype Changer (most configurations enable the Dyanmic Island).
-  - Change Device Model Name
-  - Enable Dynamic Island (26+)
-  - Enable Always On Display (18+)
-  - Enable Charge Limit (17+)
-  - Enable Boot Chime
-  - Enable Camera Control (18+)
-  - Enable Action Button (17+)
-  - Enable Crash Detection (probably doesn't actually work though)
-  - Enable Security Research Device UI (26+)
-  - Disable Region Restrictions
-  - Enable Apple Intelligence (+ model spoofing) (18+)
-  - Allow Installing iPadOS Apps
-  - Enable Apple Pencil **Settings**
-  - Enable iPadOS UI (**WARNING:** Please do not turn off "Show Dock In Stage Manager" or your device will BOOTLOOP when rotating to landscape. Also, do NOT use this tweak with an alphanumeric passcode!)
-  - Enable Internal Storage
-  - Enable Internal Features
-  - Metal HUD in All Apps
-- MobileGestalt Data
-  - Export original & modified gestalts.
-  - View device keys & values for CacheExtra.
-- List Installed Apps
-  - Shows a list of all currently installed apps.
-  - Get app details (mainly from Info.plist?).
 
 ## Credits
 - [Duy Tran (@khanhduytran0)](https://github.com/khanhduytran0): Creator of the original SparseBox.
